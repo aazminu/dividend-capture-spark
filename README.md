@@ -4,14 +4,15 @@ Event-driven market-microstructure pipeline for analyzing ex-dividend price drop
 
 ## Core Modules
 
-1. **`event_table.py`**:
-   - Joins historical corporate dividend declarations (`declaration_date`, `ex_date`, `pay_date`, `dividend_amount`) with split-adjusted daily OHLCV bars across `[T-5, T+10]` trading sessions.
-   - Computes drop ratios $\Delta P_{\text{ex}} / D$, recovery trading days, and sector-adjusted abnormal returns over `[T-1, T+k]`.
-2. **`sector_classifier.py`**:
-   - Benchmarks L2-regularized multinomial/binary Logistic Regression against Gaussian & Multinomial Naive Bayes across 11 GICS equity sectors (including Technology and Consumer Cyclical subsets).
+1. **`event_analyzer.py`**:
+   - Joins historical corporate dividend declarations with split-adjusted ex-dividend OHLCV bars (`DividendEventAnalyzer`).
+   - Computes drop ratios $\Delta P_{\text{ex}} / D$, market-adjusted abnormal overnight returns, and transaction-cost-adjusted net capture (bps) across yield buckets.
+2. **`pseudo_sector_classifier.py`**:
+   - Z-score standardized $k$-NN feature-space sector imputation (`PseudoSectorClassifier`) for tickers missing SIC/GICS sector metadata.
 3. **`gbdt_capture_model.py`**:
-   - Point-in-time feature extraction (trailing volatility, drop-to-dividend history, dollar volume liquidity, yield regime) with strict declaration-to-ex-date causality (`no look-ahead leak`).
-   - Gradient-boosted decision stump ensemble (`GBDTCaptureScorer`) and purged walk-forward backtester with round-trip transaction cost deduction (bps).
+   - Point-in-time feature extraction with strict `ex-1 15:45 ET` temporal split verification (`no look-ahead leak`).
+   - Gradient-boosted decision stump ensemble (`TemporalSplitGBDT`) with out-of-sample ROC-AUC evaluation and live minute-bar VWAP/order-imbalance streaming scorer (`LiveMinuteBarStreamingScorer`).
+
 
 ## Quickstart
 

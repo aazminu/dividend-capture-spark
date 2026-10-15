@@ -102,6 +102,7 @@ def test_temporal_split_gbdt_and_leakage_guard() -> None:
     metrics = model.evaluate_strategy(train_rows, eval_rows, min_predicted_bps=3.0)
     assert metrics["model_selected_mean_bps"] > metrics["always_trade_mean_bps"]
     assert metrics["selected_event_count"] == 1.0
+    assert metrics["roc_auc"] == 1.0
 
     # Leakage check: eval row earlier than train row must raise ValueError
     leaked_eval = [

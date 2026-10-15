@@ -109,6 +109,21 @@ class TemporalSplitGBDT:
             pred += self.learning_rate * val
         return round(pred, 4)
 
+    @staticmethod
+    def _compute_roc_auc(scores: Sequence[float], labels: Sequence[int]) -> float:
+        pos = [s for s, y in zip(scores, labels) if y == 1]
+        neg = [s for s, y in zip(scores, labels) if y == 0]
+        if not pos or not neg:
+            return 0.5
+        concordant = 0.0
+        for sp in pos:
+            for sn in neg:
+                if sp > sn:
+                    concordant += 1.0
+                elif sp == sn:
+                    concordant += 0.5
+        return round(concordant / (len(pos) * len(neg)), 4)
+
     def evaluate_strategy(
         self,
         train_rows: Sequence[PreDecisionFeatureRow],
@@ -119,16 +134,19 @@ class TemporalSplitGBDT:
         self.fit(train_rows)
 
         always_trade_mean = sum(r.realized_net_capture_bps for r in eval_rows) / len(eval_rows)
+        preds = [self.predict_bps(r.features) for r in eval_rows]
+        binary_labels = [1 if r.realized_net_capture_bps > 0.0 else 0 for r in eval_rows]
         selected = [
             r.realized_net_capture_bps
-            for r in eval_rows
-            if self.predict_bps(r.features) >= min_predicted_bps
+            for r, p in zip(eval_rows, preds)
+            if p >= min_predicted_bps
         ]
         model_mean = sum(selected) / len(selected) if selected else 0.0
         return {
             "always_trade_mean_bps": round(always_trade_mean, 3),
             "model_selected_mean_bps": round(model_mean, 3),
             "selected_event_count": float(len(selected)),
+            "roc_auc": self._compute_roc_auc(preds, binary_labels),
         }
 
 
