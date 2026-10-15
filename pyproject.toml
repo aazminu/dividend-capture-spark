@@ -1,0 +1,19 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "dividend-capture-spark"
+version = "0.2.0"
+description = "Event-grain ex-dividend price-drop anomaly analyzer, hybrid pseudo-sector classifier, temporal-split GBDT capture model, and live minute-bar streaming scorer."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [
+  { name = "Abdullah Azmi", email = "203570326+aazminu@users.noreply.github.com" }
+]
+dependencies = []
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
